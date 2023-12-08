@@ -1,0 +1,253 @@
+#include <random>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <chrono>
+#include <algorithm>
+
+using namespace std;
+using namespace std::chrono;
+
+// Simple Sorting Algorithms
+void BubbleSort(int* array, int n) {
+    int i, j, temp;
+    for (i = 0; i < n; i++) {
+        for (j = i + 1; j < n; j++) {
+            if (array[i] < array[j]) {
+                temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            }
+        }
+    }
+}
+
+void InsertionSort(int* array, int n) {
+    int i, j, element;
+    for (i = 1; i < n; i++) {
+        element = array[i];
+        j = i - 1;
+        while (j >= 0 && array[j] > element) {
+            array[j + 1] = array[j];
+            j--;
+        }
+        array[j + 1] = element;
+    }
+}
+
+// Advanced Sorting Algorithm
+int partition(int* array, int low, int high) {
+    int pivot = array[high];
+    int i = low - 1;
+
+    for (int j = low; j <= high - 1; j++) {
+        if (array[j] < pivot) {
+            i++;
+            swap(array[i], array[j]);
+        }
+    }
+
+    swap(array[i + 1], array[high]);
+    return i + 1;
+}
+
+void QuickSort(int* array, int low, int high) {
+    if (low < high) {
+        int pivotIndex = partition(array, low, high);
+
+        QuickSort(array, low, pivotIndex - 1);
+        QuickSort(array, pivotIndex + 1, high);
+    }
+}
+
+void PrintArray(int* array, int n) {
+    for (int i = 0; i < n; i++) {
+        cout << array[i] << ",";
+    }
+    cout << endl;
+}
+
+// Graph class
+class Graph {
+public:
+    int vertices;
+    vector<vector<int>> adjacencyList;
+
+    Graph(int v) : vertices(v), adjacencyList(v) {}
+
+    void addEdge(int u, int v) {
+        adjacencyList[u].push_back(v);
+        adjacencyList[v].push_back(u);
+    }
+
+    void loadFromFile(const string& filename) {
+        ifstream file(filename);
+        if (file.is_open()) {
+            int edges;
+            file >> vertices >> edges;
+
+            adjacencyList.resize(vertices);
+
+            for (int i = 0; i < edges; ++i) {
+                int u, v;
+                file >> u >> v;
+                addEdge(u, v);
+            }
+
+            file.close();
+        }
+        else {
+            cerr << "Error opening file: " << filename << endl;
+        }
+    }
+
+    void BFS(int start, int destination) {
+        vector<bool> visited(vertices, false);
+        queue<int> q;
+
+        q.push(start);
+        visited[start] = true;
+
+        while (!q.empty()) {
+            int current = q.front();
+            q.pop();
+
+            cout << current << " ";
+
+            if (current == destination) {
+                cout << endl << "Destination reached!" << endl;
+                return;
+            }
+
+            for (int neighbor : adjacencyList[current]) {
+                if (!visited[neighbor]) {
+                    q.push(neighbor);
+                    visited[neighbor] = true;
+                }
+            }
+        }
+
+        cout << endl << "Destination not reachable." << endl;
+    }
+
+    void DFS(int start, int destination) {
+        vector<bool> visited(vertices, false);
+        stack<int> s;
+
+        s.push(start);
+        visited[start] = true;
+
+        while (!s.empty()) {
+            int current = s.top();
+            s.pop();
+
+            cout << current << " ";
+
+            if (current == destination) {
+                cout << endl << "Destination reached!" << endl;
+                return;
+            }
+
+            for (int neighbor : adjacencyList[current]) {
+                if (!visited[neighbor]) {
+                    s.push(neighbor);
+                    visited[neighbor] = true;
+                }
+            }
+        }
+
+        cout << endl << "Destination not reachable." << endl;
+    }
+};
+
+int main() {
+    int n;
+    int array[100];
+    cout << "How many elements:";
+    cin >> n;
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<int> distrib(1, 100);
+    for (int i = 0; i < n; i++) {
+        array[i] = distrib(gen);
+    }
+    cout << "Unsorted elements list:" << endl;
+    PrintArray(array, n);
+    cout << endl;
+
+    int choice;
+    cout << "Choose operation (1: Sorting, 2: Graph Search): ";
+    cin >> choice;
+
+    auto start = high_resolution_clock::now();
+    Graph graph(10);  // Declare the Graph object outside the switch statement
+
+    switch (choice) {
+    case 1:
+        int sortingAlgorithm;
+        cout << "Choose sorting algorithm (1: Insertion Sort, 2: Bubble Sort, 3: Quick Sort): ";
+        cin >> sortingAlgorithm;
+
+        switch (sortingAlgorithm) {
+        case 1:
+            InsertionSort(array, n);
+            cout << "Sorted elements list using Insertion Sort:" << endl;
+            break;
+        case 2:
+            BubbleSort(array, n);
+            cout << "Sorted elements list using Bubble Sort:" << endl;
+            break;
+        case 3:
+            QuickSort(array, 0, n - 1);
+            cout << "Sorted elements list using Quick Sort:" << endl;
+            break;
+        default:
+            cerr << "Invalid sorting algorithm choice!" << endl;
+            return 1;
+        }
+
+        PrintArray(array, n);
+        break;
+
+    case 2:
+        // Graph Search
+        graph.loadFromFile("AssignmentNodes.txt");
+
+        int startVertex, destVertex;
+        cout << "Enter starting vertex for graph search: ";
+        cin >> startVertex;
+        cout << "Enter destination vertex for graph search: ";
+        cin >> destVertex;
+
+        int searchAlgorithm;
+        cout << "Choose search algorithm (1: Breadth-First Search, 2: Depth-First Search): ";
+        cin >> searchAlgorithm;
+
+        switch (searchAlgorithm) {
+        case 1:
+            cout << "BFS result:" << endl;
+            graph.BFS(startVertex, destVertex);
+            break;
+        case 2:
+            cout << "DFS result:" << endl;
+            graph.DFS(startVertex, destVertex);
+            break;
+        default:
+            cerr << "Invalid search algorithm choice!" << endl;
+            return 1;
+        }
+        break;
+
+    default:
+        cerr << "Invalid choice!" << endl;
+        return 1;
+    }
+
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    cout << "Time taken: " << duration.count() << " microseconds" << endl;
+
+    return 0;
+}
